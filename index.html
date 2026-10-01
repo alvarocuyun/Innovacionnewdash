@@ -1,0 +1,1080 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BIA Restaurants · R&D Pipeline 2026</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+:root {
+  --white: #ffffff;
+  --off: #fafafa;
+  --border: #e8eaef;
+  --border2: #d1d5e0;
+  --tx: #0f1523;
+  --tx2: #4a5270;
+  --tx3: #9aa0b8;
+  --accent: #1c2341;
+
+  /* marca */
+  --cb:  #1a6b3a; --cb-l:  #e6f5ec; --cb-m: #2d9e58;
+  --apb: #c0390f; --apb-l: #fdecea; --apb-m: #e04e20;
+  --px:  #1a1a1a; --px-l:  #f0f0f0; --px-m: #444444;
+  --pdc: #6d28d9; --pdc-l: #ede9fe; --pdc-m: #7c3aed;
+
+  /* status */
+  --comp: #059669; --comp-l: #d1fae5;
+  --et:   #2563eb; --et-l:   #dbeafe;
+  --atr:  #dc2626; --atr-l:  #fee2e2;
+  --rsg:  #d97706; --rsg-l:  #fef3c7;
+
+  --sh: 0 1px 4px rgba(15,21,35,.06);
+  --sh2: 0 4px 24px rgba(15,21,35,.10);
+  --r: 8px; --r2: 14px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Inter', system-ui, sans-serif; background: #f5f6fa; color: var(--tx); font-size: 14px; min-height: 100vh; }
+
+/* ── UPLOAD SCREEN ── */
+#upload-screen {
+  min-height: 100vh; background: var(--white);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0;
+}
+.up-logo {
+  font-size: 13px; font-weight: 700; letter-spacing: .08em; color: var(--tx3);
+  text-transform: uppercase; margin-bottom: 48px;
+}
+.up-logo span { color: var(--tx); }
+.up-card {
+  width: 480px; border: 1.5px dashed var(--border2); border-radius: 20px;
+  padding: 48px 40px; text-align: center; cursor: pointer;
+  transition: border-color .2s, background .2s;
+}
+.up-card:hover, .up-card.drag { border-color: var(--accent); background: #f7f8ff; }
+.up-icon { font-size: 40px; margin-bottom: 20px; display: block; }
+.up-title { font-size: 20px; font-weight: 700; color: var(--tx); margin-bottom: 8px; }
+.up-sub { font-size: 13.5px; color: var(--tx3); line-height: 1.6; }
+.up-sub strong { color: var(--tx2); }
+.up-btn {
+  margin-top: 28px; display: inline-flex; align-items: center; gap: 8px;
+  background: var(--accent); color: #fff; font-size: 13.5px; font-weight: 600;
+  padding: 11px 28px; border-radius: 40px; border: none; cursor: pointer;
+  transition: opacity .15s;
+}
+.up-btn:hover { opacity: .88; }
+.up-prog { height: 3px; background: var(--border); border-radius: 2px; margin-top: 24px; overflow: hidden; display: none; }
+.up-prog.show { display: block; }
+.up-prog-fill { height: 100%; background: var(--accent); border-radius: 2px; width: 0; transition: width .3s; }
+.up-demo { margin-top: 20px; font-size: 12px; color: var(--tx3); }
+.up-demo button { background: none; border: none; color: var(--tx2); font-size: 12px; cursor: pointer; text-decoration: underline; font-family: inherit; }
+input[type=file] { display: none; }
+
+/* ── TOPBAR ── */
+#app { display: none; min-height: 100vh; background: #f5f6fa; }
+.topbar {
+  position: sticky; top: 0; z-index: 100;
+  background: var(--white); border-bottom: 1px solid var(--border);
+  height: 58px; padding: 0 2rem;
+  display: flex; align-items: center; justify-content: space-between;
+  box-shadow: var(--sh);
+}
+.tb-left { display: flex; align-items: center; gap: 12px; }
+.tb-logo {
+  width: 34px; height: 34px; border-radius: 9px;
+  background: var(--accent); display: flex; align-items: center; justify-content: center;
+  font-size: 14px; color: #fff; font-weight: 800; flex-shrink: 0;
+}
+.tb-name { font-size: 15px; font-weight: 700; color: var(--tx); letter-spacing: -.02em; }
+.tb-sub  { font-size: 11px; color: var(--tx3); margin-top: 1px; }
+.tb-right { display: flex; align-items: center; gap: 10px; }
+.tb-chip {
+  font-size: 11.5px; font-weight: 600; color: var(--tx2);
+  background: var(--off); border: 1px solid var(--border);
+  padding: 4px 12px; border-radius: 20px;
+}
+.tb-reload {
+  font-size: 12.5px; font-weight: 500; color: var(--tx3); background: none;
+  border: 1px solid var(--border); padding: 5px 14px; border-radius: 20px;
+  cursor: pointer; font-family: inherit; transition: all .15s;
+}
+.tb-reload:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ── BRAND NAV ── */
+.brand-nav {
+  background: var(--white); border-bottom: 1px solid var(--border);
+  padding: 0 2rem; display: flex; gap: 2px; overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.bntab {
+  display: flex; align-items: center; gap: 8px; padding: 14px 18px;
+  border: none; background: none; cursor: pointer; font-family: inherit;
+  font-size: 13px; font-weight: 500; color: var(--tx3);
+  border-bottom: 3px solid transparent; white-space: nowrap;
+  transition: all .15s;
+}
+.bntab:hover { color: var(--tx2); }
+.bntab.active { font-weight: 700; border-bottom-color: currentColor; }
+.bntab .dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: currentColor; opacity: .5;
+  transition: opacity .15s;
+}
+.bntab.active .dot { opacity: 1; }
+.bntab .cnt {
+  font-size: 10.5px; font-weight: 600; padding: 2px 7px;
+  border-radius: 20px; background: currentColor;
+  color: var(--white); opacity: .15;
+}
+.bntab.active .cnt { opacity: 1; }
+
+/* Brand colors */
+.bn-all   { color: var(--accent); }
+.bn-cb    { color: var(--cb); }
+.bn-apb   { color: var(--apb); }
+.bn-px    { color: var(--px); }
+.bn-pdc   { color: var(--pdc); }
+
+/* ── PAGE ── */
+.page { padding: 2rem; max-width: 1700px; margin: 0 auto; }
+
+/* ── BRAND HERO ── */
+.brand-hero {
+  border-radius: var(--r2); padding: 24px 28px; margin-bottom: 2rem;
+  display: flex; align-items: center; gap: 20px;
+  position: relative; overflow: hidden;
+}
+.brand-hero::before {
+  content: ''; position: absolute; top: -60px; right: -60px;
+  width: 220px; height: 220px; border-radius: 50%;
+  background: rgba(255,255,255,.07); pointer-events: none;
+}
+.bh-left { display: flex; align-items: center; gap: 16px; }
+.bh-emoji { font-size: 36px; }
+.bh-title { font-size: 22px; font-weight: 800; color: #fff; letter-spacing: -.03em; line-height: 1; }
+.bh-sub { font-size: 12px; color: rgba(255,255,255,.6); margin-top: 4px; }
+.bh-stats { margin-left: auto; display: flex; gap: 12px; }
+.bh-stat {
+  background: rgba(255,255,255,.13); border: 1px solid rgba(255,255,255,.18);
+  border-radius: 10px; padding: 10px 16px; text-align: center; min-width: 72px;
+}
+.bh-stat-v { font-size: 22px; font-weight: 800; color: #fff; line-height: 1; }
+.bh-stat-l { font-size: 9.5px; color: rgba(255,255,255,.6); margin-top: 3px; font-weight: 500; text-transform: uppercase; letter-spacing: .04em; }
+
+/* ── KPI ROW ── */
+.kpi-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 2rem; }
+.kpi {
+  background: var(--white); border: 1px solid var(--border); border-radius: var(--r2);
+  padding: 18px 20px; box-shadow: var(--sh); position: relative; overflow: hidden;
+}
+.kpi::after {
+  content: ''; position: absolute; bottom: 0; left: 0; right: 0;
+  height: 3px; background: var(--kc, var(--accent)); border-radius: 0 0 4px 4px;
+}
+.kpi-n { font-size: 32px; font-weight: 900; line-height: 1; letter-spacing: -.04em; color: var(--tx); margin-top: 4px; }
+.kpi-l { font-size: 11.5px; font-weight: 600; color: var(--tx3); margin-top: 5px; }
+.kpi-bar { height: 3px; background: #eee; border-radius: 2px; overflow: hidden; margin-top: 10px; }
+.kpi-bar-fill { height: 100%; border-radius: 2px; }
+
+/* ── SECTION TITLE ── */
+.stitle { font-size: 13px; font-weight: 700; color: var(--tx); margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+.stitle-note { font-size: 11px; font-weight: 400; color: var(--tx3); margin-left: auto; }
+
+/* ── CHARTS GRID ── */
+.g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 2rem; }
+.g3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 2rem; }
+.g-main { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; margin-bottom: 2rem; }
+.card { background: var(--white); border: 1px solid var(--border); border-radius: var(--r2); padding: 22px; box-shadow: var(--sh); }
+.ch { position: relative; height: 230px; }
+.ch-sm { position: relative; height: 180px; }
+.ch-lg { position: relative; height: 300px; }
+
+/* ── STATUS BADGE ── */
+.sbadge {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 9px; border-radius: 20px; font-size: 11px; font-weight: 600; white-space: nowrap;
+}
+.s-comp { background: var(--comp-l); color: var(--comp); }
+.s-et   { background: var(--et-l);   color: var(--et); }
+.s-atr  { background: var(--atr-l);  color: var(--atr); }
+.s-rsg  { background: var(--rsg-l);  color: var(--rsg); }
+.s-def  { background: #f0f0f0;       color: #666; }
+
+/* ── COUNTRY BADGE ── */
+.cbadge { display: inline-block; padding: 1px 6px; border-radius: 4px; font-size: 10px; font-weight: 700; background: #f0f0f0; color: var(--tx3); margin-left: 4px; }
+
+/* ── FILTER BAR ── */
+.fbar {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  margin-bottom: 1.5rem; background: var(--white);
+  border: 1px solid var(--border); border-radius: var(--r2);
+  padding: 12px 16px; box-shadow: var(--sh);
+}
+.fbar select, .fbar input {
+  padding: 7px 12px; border: 1.5px solid var(--border2); border-radius: var(--r);
+  font-size: 12.5px; color: var(--tx2); background: var(--white);
+  outline: none; font-family: inherit; min-width: 140px;
+}
+.fbar select:focus, .fbar input:focus { border-color: var(--accent); }
+.f-search { flex: 1; min-width: 180px; max-width: 260px; position: relative; }
+.f-search input { width: 100%; padding-left: 30px; }
+.f-search::before { content: '🔍'; position: absolute; left: 9px; top: 50%; transform: translateY(-50%); font-size: 12px; }
+.f-cnt { font-size: 12px; color: var(--tx3); margin-left: auto; font-weight: 500; white-space: nowrap; }
+.f-clr { padding: 7px 13px; border: 1px solid var(--border2); border-radius: var(--r); background: var(--white); font-size: 12px; color: var(--tx3); cursor: pointer; font-family: inherit; transition: all .15s; }
+.f-clr:hover { border-color: var(--atr); color: var(--atr); }
+
+/* ── PROJECTS TABLE ── */
+.tbl-wrap { border-radius: var(--r); border: 1px solid var(--border); overflow: hidden; }
+.ptbl { width: 100%; border-collapse: collapse; font-size: 13px; }
+.ptbl thead th {
+  padding: 10px 14px; text-align: left;
+  font-size: 10.5px; font-weight: 600; color: var(--tx3);
+  background: var(--off); border-bottom: 1.5px solid var(--border);
+  white-space: nowrap; cursor: pointer; user-select: none;
+  position: sticky; top: 0; z-index: 1;
+}
+.ptbl thead th:hover { color: var(--tx); }
+.ptbl tbody tr { border-bottom: 1px solid var(--border); cursor: pointer; transition: background .1s; }
+.ptbl tbody tr:last-child { border-bottom: none; }
+.ptbl tbody tr:hover td { background: #f8f9ff; }
+.ptbl td { padding: 10px 14px; color: var(--tx2); vertical-align: middle; }
+.td-name { font-weight: 600; color: var(--tx); }
+.td-center { text-align: center; }
+.av-wrap { display: flex; align-items: center; gap: 8px; }
+.av-track { flex: 1; height: 5px; background: #eee; border-radius: 3px; overflow: hidden; min-width: 50px; }
+.av-fill { height: 100%; border-radius: 3px; }
+.av-pct { font-size: 12px; font-weight: 700; min-width: 34px; text-align: right; }
+.tbl-scroll { max-height: 500px; overflow-y: auto; }
+
+/* ── MARCA CARDS (consolidado) ── */
+.marca-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 2rem; }
+.marca-card {
+  background: var(--white); border: 1px solid var(--border);
+  border-radius: var(--r2); padding: 18px; cursor: pointer;
+  transition: box-shadow .15s, transform .12s; box-shadow: var(--sh);
+  border-top: 3px solid var(--mc, #ccc);
+}
+.marca-card:hover { box-shadow: var(--sh2); transform: translateY(-1px); }
+.mc-head { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+.mc-emoji { font-size: 24px; }
+.mc-name { font-size: 14px; font-weight: 700; color: var(--tx); line-height: 1.2; }
+.mc-n { font-size: 11px; color: var(--tx3); margin-top: 2px; }
+.mc-stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+.mc-stat { background: var(--off); border-radius: 7px; padding: 7px 6px; text-align: center; }
+.mc-stat-v { font-size: 17px; font-weight: 800; color: var(--tx); line-height: 1; }
+.mc-stat-l { font-size: 9px; color: var(--tx3); margin-top: 2px; font-weight: 500; }
+.mc-bar { height: 3px; border-radius: 2px; overflow: hidden; background: var(--border); margin-top: 12px; }
+.mc-bar-fill { height: 100%; border-radius: 2px; }
+.mc-avg { font-size: 10px; color: var(--tx3); margin-top: 4px; text-align: right; }
+
+/* ── PROJECT DRAWER ── */
+.ovl { display: none; position: fixed; inset: 0; background: rgba(15,21,35,.2); z-index: 300; backdrop-filter: blur(3px); }
+.ovl.open { display: block; }
+.drw {
+  position: fixed; top: 0; right: -100%; bottom: 0; width: min(720px, 96vw);
+  background: var(--white); z-index: 301; box-shadow: -4px 0 40px rgba(15,21,35,.12);
+  transition: right .28s cubic-bezier(.25,1,.5,1);
+  display: flex; flex-direction: column; overflow: hidden;
+}
+.drw.open { right: 0; }
+.dh { padding: 1.5rem 1.75rem 1.2rem; flex-shrink: 0; border-bottom: 1px solid var(--border); }
+.dh-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.dh-brand { font-size: 10.5px; font-weight: 700; letter-spacing: .05em; margin-bottom: 6px; }
+.dh-title { font-size: 19px; font-weight: 800; color: var(--tx); line-height: 1.2; letter-spacing: -.02em; }
+.dh-meta { display: flex; align-items: center; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+.dcl {
+  width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--border);
+  background: var(--white); cursor: pointer; font-size: 14px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center; color: var(--tx3);
+  transition: all .15s;
+}
+.dcl:hover { background: var(--off); color: var(--tx); }
+.dkpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 16px; }
+.dkpi { background: var(--off); border-radius: 9px; padding: 10px 12px; text-align: center; }
+.dkpi-v { font-size: 19px; font-weight: 800; line-height: 1; color: var(--tx); }
+.dkpi-l { font-size: 9.5px; font-weight: 600; color: var(--tx3); margin-top: 3px; text-transform: uppercase; letter-spacing: .04em; }
+.db { flex: 1; overflow-y: auto; padding: 1.5rem 1.75rem; }
+.d-sec { margin-bottom: 1.4rem; }
+.d-sec-t { font-size: 10px; font-weight: 700; color: var(--tx3); text-transform: uppercase; letter-spacing: .07em; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+.d-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.d-item { background: var(--off); border-radius: 8px; padding: 10px 13px; }
+.d-l { font-size: 9.5px; font-weight: 600; color: var(--tx3); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 3px; }
+.d-v { font-size: 13.5px; font-weight: 700; color: var(--tx); }
+.d-bar { height: 8px; background: #e9ebf0; border-radius: 4px; overflow: hidden; margin-top: 6px; }
+.d-fill { height: 100%; border-radius: 4px; }
+.d-deviation {
+  border-radius: 10px; padding: 14px 16px;
+  display: flex; align-items: center; gap: 12px; margin-top: 12px;
+}
+
+/* ── RETRABAJO LIST ── */
+.retrab-list { display: flex; flex-direction: column; gap: 8px; }
+.retrab-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 12px; border-radius: 8px; background: var(--off);
+  cursor: pointer; transition: background .1s;
+}
+.retrab-item:hover { background: #f0f2ff; }
+.retrab-dot {
+  width: 28px; height: 28px; border-radius: 7px;
+  background: var(--atr-l); color: var(--atr);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 800; flex-shrink: 0;
+}
+.retrab-name { font-size: 12.5px; font-weight: 600; color: var(--tx); flex: 1; }
+.retrab-meta { font-size: 11px; color: var(--tx3); }
+
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+.empty { text-align: center; padding: 4rem 1rem; color: var(--tx3); }
+.empty-i { font-size: 36px; margin-bottom: 10px; }
+.empty h3 { font-size: 15px; font-weight: 700; color: var(--tx2); margin-bottom: 5px; }
+
+@media (max-width:1200px) {
+  .kpi-row { grid-template-columns: repeat(3,1fr); }
+  .g2,.g3,.g-main { grid-template-columns: 1fr; }
+  .marca-grid { grid-template-columns: repeat(2,1fr); }
+  .dkpi-row { grid-template-columns: repeat(2,1fr); }
+}
+@media (max-width:700px) {
+  .kpi-row { grid-template-columns: repeat(2,1fr); }
+  .page { padding: 1rem; }
+  .marca-grid { grid-template-columns: 1fr 1fr; }
+  .bntab { padding: 12px 10px; font-size: 12px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ══ UPLOAD SCREEN ══════════════════════════════════════ -->
+<div id="upload-screen">
+  <div class="up-logo">BIA <span>Restaurants</span> · R&amp;D Pipeline</div>
+  <div class="up-card" id="up-card" onclick="document.getElementById('fi').click()">
+    <span class="up-icon">📊</span>
+    <div class="up-title">Cargar reporte de proyectos</div>
+    <div class="up-sub">Arrastra el archivo Excel aquí<br>o haz clic para seleccionarlo<br><br><strong>BIA_Dashboards_2026.xlsx</strong></div>
+    <button class="up-btn" onclick="event.stopPropagation();document.getElementById('fi').click()">
+      Seleccionar archivo
+    </button>
+    <div class="up-prog" id="up-prog"><div class="up-prog-fill" id="up-fill"></div></div>
+    <div class="up-demo">o <button onclick="event.stopPropagation();loadDemo()">continuar con los últimos datos guardados</button></div>
+  </div>
+  <input type="file" id="fi" accept=".xlsx,.xls">
+</div>
+
+<!-- ══ APP ════════════════════════════════════════════════ -->
+<div id="app">
+  <header class="topbar">
+    <div class="tb-left">
+      <div class="tb-logo">BIA</div>
+      <div>
+        <div class="tb-name">R&amp;D Pipeline 2026</div>
+        <div class="tb-sub" id="tb-file">—</div>
+      </div>
+    </div>
+    <div class="tb-right">
+      <span class="tb-chip" id="tb-total">— proyectos</span>
+      <button class="tb-reload" onclick="resetApp()">↺ Recargar archivo</button>
+    </div>
+  </header>
+
+  <nav class="brand-nav" id="bnav"></nav>
+
+  <div id="dash">
+    <div class="page" id="page"></div>
+  </div>
+</div>
+
+<!-- ══ DRAWER ════════════════════════════════════════════ -->
+<div class="ovl" id="ovl" onclick="closeDrawer()"></div>
+<div class="drw" id="drw">
+  <div class="dh">
+    <div class="dh-top">
+      <div style="flex:1;min-width:0">
+        <div class="dh-brand" id="d-brand">—</div>
+        <div class="dh-title" id="d-title">—</div>
+        <div class="dh-meta" id="d-meta"></div>
+      </div>
+      <button class="dcl" onclick="closeDrawer()">✕</button>
+    </div>
+    <div class="dkpi-row" id="d-kpis"></div>
+  </div>
+  <div class="db" id="d-body"></div>
+</div>
+
+<script>
+/* ══ EMBEDDED DATA ══════════════════════════════════ */
+const EMBEDDED = [{"id":"1","nombre":"FRESAS CON CREMA GT","marca":"Café Barista Guatemala","grupo":"Café Barista","pais":"GT","key":"CB","categoria":"Innovacion","estado":"Completado","avance":1.0,"plan":1.0,"fecha_brief":"01/12/2025","fecha_launch":"01/02/2026","dias":62,"retrabajos":0,"ficha":1.0},{"id":"2","nombre":"FRESAS CON CREMA SV","marca":"Café Barista El Salvador","grupo":"Café Barista","pais":"SV","key":"CB","categoria":"Innovacion","estado":"Completado","avance":1.0,"plan":1.0,"fecha_brief":"01/12/2025","fecha_launch":"01/02/2026","dias":62,"retrabajos":0,"ficha":1.0},{"id":"3","nombre":"VERANO GT","marca":"Café Barista Guatemala","grupo":"Café Barista","pais":"GT","key":"CB","categoria":"Innovacion","estado":"Completado","avance":1.0,"plan":1.0,"fecha_brief":"01/12/2025","fecha_launch":"01/03/2026","dias":90,"retrabajos":1,"ficha":1.0},{"id":"4","nombre":"VERANO SV","marca":"Café Barista El Salvador","grupo":"Café Barista","pais":"SV","key":"CB","categoria":"Innovacion","estado":"Completado","avance":1.0,"plan":1.0,"fecha_brief":"01/12/2025","fecha_launch":"01/03/2026","dias":90,"retrabajos":0,"ficha":1.0},{"id":"5","nombre":"FRAPPE OREO","marca":"Café Barista Guatemala","grupo":"Café Barista","pais":"GT","key":"CB","categoria":"Innovacion","estado":"Completado","avance":1.0,"plan":1.0,"fecha_brief":"01/04/2026","fecha_launch":"01/06/2026","dias":61,"retrabajos":0,"ficha":1.0},{"id":"6","nombre":"KITKAT","marca":"Café Barista Guatemala","grupo":"Café Barista","pais":"GT","key":"CB","categoria":"Innovacion","estado":"Completado","avance":1.0,"plan":1.0,"fecha_brief":"07/05/2026","fecha_launch":"15/07/2026","dias":69,"retrabajos":1,"ficha":1.0},{"id":"7","nombre":"BOLITAS DE QUESO  GT","marca":"Café Barista Guatemala","grupo":"Café Barista","pais":"GT","key":"CB","categoria":"Innovacion","estado":"Completado","avance":1.0,"plan":1.0,"fecha_brief":"01/05/2026","fecha_launch":"15/06/2026","dias":45,"retrabajos":1,"ficha":1.0},{"id":"8","nombre":"BOLITAS DE QUESO  SV","marca":"Café Barista El Salvador","grupo":"Café Barista","pais":"SV","key":"CB","categoria":"Innovacion","estado":"En tiempo","avance":0.75,"plan":0.75,"fecha_brief":"01/05/2026","fecha_launch":"15/10/2026","dias":167,"retrabajos":1,"ficha":1.0},{"id":"9","nombre":"SALT CARAMEL SV","marca":"Café Barista El Salvador","grupo":"Café Barista","pais":"SV","key":"CB","categoria":"Innovacion","estado":"Completado","avance":1.0,"plan":1.0,"fecha_brief":"01/03/2026","fecha_launch":"15/06/2026","dias":106,"retrabajos":0,"ficha":1.0},{"id":"10","nombre":"INDEPENDENCIA SV","marca":"Café Barista El Salvador","grupo":"Café Barista","pais":"SV","key":"CB","categoria":"Innovacion","estado":"Completado","avance":1.0,"plan":1.0,"fecha_brief":"01/06/2026","fecha_launch":"01/09/2026","dias":92,"retrabajos":1,"ficha":1.0},{"id":"11","nombre":"INDEPENDENCIA  GT","marca":"Café Barista Guatemala","grupo":"Café Barista","pais":"GT","key":"CB","categoria":"Innovacion","estado":"Completado","avance":1.0,"plan":1.0,"fecha_brief":"01/06/2026","fecha_launch":"01/09/2026","dias":92,"retrabajos":1,"ficha":1.0},{"id":"12","nombre":"GOLDEN SEASON GT","marca":"Café Barista Guatemala","grupo":"Café Barista","pais":"GT","key":"CB","categoria":"Innovacion","estado":"Completado","avance":1.0,"plan":1.0,"fecha_brief":"01/06/2026","fecha_launch":"07/09/2026","dias":98,"retrabajos":3,"ficha":1.0},{"id":"13","nombre":"GOLDEN SEASON SV","marca":"Café Barista El Salvador","grupo":"Café Barista","pais":"SV","key":"CB","categoria":"Innovacion","estado":"Completado","avance":0.9,"plan":0.9,"fecha_brief":"01/06/2026","fecha_launch":"07/09/2026","dias":98,"retrabajos":3,"ficha":1.0},{"id":"14","nombre":"COLD FOAM GT","marca":"Café Barista Guatemala","grupo":"Café Barista","pais":"GT","key":"CB","categoria":"Innovacion","estado":"En tiempo","avance":0.8,"plan":0.8,"fecha_brief":"01/03/2026","fecha_launch":"02/11/2026","dias":246,"retrabajos":2,"ficha":0.85},{"id":"15","nombre":"COLD FOAM SV","marca":"Café Barista El Salvador","grupo":"Café Barista","pais":"SV","key":"CB","categoria":"Innovacion","estado":"En tiempo","avance":0.7,"plan":0.7,"fecha_brief":"01/03/2026","fecha_launch":"02/11/2026","dias":246,"retrabajos":2,"ficha":0.85},{"id":"16","nombre":"NAVIDAD GT","marca":"Café Barista Guatemala","grupo":"Café Barista","pais":"GT","key":"CB","categoria":"Innovacion","estado":"En tiempo","avance":0.8,"plan":0.8,"fecha_brief":"01/07/2026","fecha_launch":"02/11/2026","dias":124,"retrabajos":1,"ficha":0.85},{"id":"17","nombre":"NAVIDAD SV","marca":"Café Barista El Salvador","grupo":"Café Barista","pais":"SV","key":"CB","categoria":"Innovacion","estado":"En tiempo","avance":0.7,"plan":0.7,"fecha_brief":"01/07/2026","fecha_launch":"02/11/2026","dias":124,"retrabajos":1,"ficha":0.85},{"id":"17","nombre":"LUNCH COMBOS","marca":"Applebee's","grupo":"Applebee's","pais":"GT","key":"APB","categoria":"Innovacion","estado":"Completado","avance":1.0,"plan":1.0,"fecha_brief":"15/10/2025","fecha_launch":"02/01/2026","dias":79,"retrabajos":0,"ficha":1.0},{"id":"18","nombre":"BURGER NIGHTS","marca":"Applebee's","grupo":"Applebee's","pais":"GT","key":"APB","categoria":"Innovacion","estado":"Completado","avance":1.0,"plan":1.0,"fecha_brief":"15/10/2025","fecha_launch":"15/01/2026","dias":92,"retrabajos":1,"ficha":1.0},{"id":"19","nombre":"MONCHOSOS","marca":"Applebee's","grupo":"Applebee's","pais":"GT","key":"APB","categoria":"Innovacion","estado":"Completado","avance":1.0,"plan":1.0,"fecha_brief":"01/02/2026","fecha_launch":"01/05/2026","dias":89,"retrabajos":1,"ficha":1.0},{"id":"20","nombre":"CELEBRATION BUCKETS","marca":"Applebee's","grupo":"Applebee's","pais":"GT","key":"APB","categoria":"Innovacion","estado":"Completado","avance":1.0,"plan":1.0,"fecha_brief":"15/03/2026","fecha_launch":"10/06/2026","dias":87,"retrabajos":0,"ficha":1.0},{"id":"21","nombre":"SAMPLERS MUNDIAL","marca":"Applebee's","grupo":"Applebee's","pais":"GT","key":"APB","categoria":"Innovacion","estado":"Completado","avance":1.0,"plan":1.0,"fecha_brief":"15/03/2026","fecha_launch":"10/06/2026","dias":87,"retrabajos":0,"ficha":1.0},{"id":"22","nombre":"ALL AMERICAN HOLIDAYS","marca":"Applebee's","grupo":"Applebee's","pais":"GT","key":"APB","categoria":"Innovacion","estado":"En tiempo","avance":0.9,"plan":0.9,"fecha_brief":"01/07/2026","fecha_launch":"02/11/2026","dias":124,"retrabajos":0,"ficha":1.0},{"id":"23","nombre":"LUNCH MENU COVIVIOS","marca":"Applebee's","grupo":"Applebee's","pais":"GT","key":"APB","categoria":"Innovacion","estado":"En tiempo","avance":0.9,"plan":0.9,"fecha_brief":"01/07/2026","fecha_launch":"02/11/2026","dias":124,"retrabajos":0,"ficha":1.0},{"id":"24","nombre":"SANTA PARRILLADA","marca":"Applebee's","grupo":"Applebee's","pais":"GT","key":"APB","categoria":"Innovacion","estado":"En tiempo","avance":0.7,"plan":0.7,"fecha_brief":"01/07/2026","fecha_launch":"02/11/2026","dias":124,"retrabajos":0,"ficha":0.8},{"id":"25","nombre":"RICEBOX GT","marca":"Panda Express Guatemala","grupo":"Panda Express","pais":"GT","key":"PX","categoria":"Innovacion","estado":"Completado","avance":1.0,"plan":1.0,"fecha_brief":"01/10/2025","fecha_launch":"01/02/2026","dias":123,"retrabajos":1,"ficha":1.0},{"id":"26","nombre":"RICEBOX SV","marca":"Panda Express El Salvador","grupo":"Panda Express","pais":"SV","key":"PX","categoria":"Innovacion","estado":"Completado","avance":1.0,"plan":1.0,"fecha_brief":"01/10/2025","fecha_launch":"01/02/2026","dias":123,"retrabajos":1,"ficha":1.0},{"id":"27","nombre":"HAWAIIAN SHRIMP GT","marca":"Panda Express Guatemala","grupo":"Panda Express","pais":"GT","key":"PX","categoria":"Innovacion","estado":"Completado","avance":1.0,"plan":1.0,"fecha_brief":"01/12/2025","fecha_launch":"15/03/2026","dias":104,"retrabajos":1,"ficha":1.0},{"id":"28","nombre":"HAWAIIAN SHRIMP SV","marca":"Panda Express El Salvador","grupo":"Panda Express","pais":"SV","key":"PX","categoria":"Innovacion","estado":"Completado","avance":1.0,"plan":1.0,"fecha_brief":"01/12/2025","fecha_launch":"15/03/2026","dias":104,"retrabajos":1,"ficha":1.0},{"id":"29","nombre":"SHRIMP WONTON GT","marca":"Panda Express Guatemala","grupo":"Panda Express","pais":"GT","key":"PX","categoria":"Innovacion","estado":"Completado","avance":1.0,"plan":1.0,"fecha_brief":"01/12/2025","fecha_launch":"15/03/2026","dias":104,"retrabajos":0,"ficha":1.0},{"id":"30","nombre":"SHRIMP WONTON SV","marca":"Panda Express El Salvador","grupo":"Panda Express","pais":"SV","key":"PX","categoria":"Innovacion","estado":"Completado","avance":1.0,"plan":1.0,"fecha_brief":"01/12/2025","fecha_launch":"15/03/2026","dias":104,"retrabajos":0,"ficha":1.0},{"id":"31","nombre":"TERIYAKI SEASON GT","marca":"Panda Express Guatemala","grupo":"Panda Express","pais":"GT","key":"PX","categoria":"Innovacion","estado":"Completado","avance":1.0,"plan":1.0,"fecha_brief":"01/03/2026","fecha_launch":"08/06/2026","dias":99,"retrabajos":0,"ficha":1.0},{"id":"32","nombre":"TERIYAKI SEASON SV","marca":"Panda Express El Salvador","grupo":"Panda Express","pais":"SV","key":"PX","categoria":"Innovacion","estado":"Completado","avance":1.0,"plan":1.0,"fecha_brief":"01/03/2026","fecha_launch":"08/06/2026","dias":99,"retrabajos":0,"ficha":1.0},{"id":"33","nombre":"HOT ORANGE CHICKEN GT","marca":"Panda Express Guatemala","grupo":"Panda Express","pais":"GT","key":"PX","categoria":"Innovacion","estado":"Completado","avance":1.0,"plan":1.0,"fecha_brief":"01/06/2026","fecha_launch":"01/08/2026","dias":61,"retrabajos":0,"ficha":1.0},{"id":"34","nombre":"HOT ORANGE CHICKEN SV","marca":"Panda Express El Salvador","grupo":"Panda Express","pais":"SV","key":"PX","categoria":"Innovacion","estado":"Completado","avance":1.0,"plan":1.0,"fecha_brief":"01/06/2026","fecha_launch":"01/08/2026","dias":61,"retrabajos":0,"ficha":1.0},{"id":"35","nombre":"CRAFTED BEVERAGES GT","marca":"Panda Express Guatemala","grupo":"Panda Express","pais":"GT","key":"PX","categoria":"Innovacion","estado":"Completado","avance":1.0,"plan":1.0,"fecha_brief":"01/12/2025","fecha_launch":"01/08/2026","dias":243,"retrabajos":1,"ficha":1.0},{"id":"36","nombre":"CRAFTED BEVERAGES SV","marca":"Panda Express El Salvador","grupo":"Panda Express","pais":"SV","key":"PX","categoria":"Innovacion","estado":"En tiempo","avance":0.7,"plan":0.7,"fecha_brief":"01/12/2025","fecha_launch":"01/02/2027","dias":427,"retrabajos":0,"ficha":1.0},{"id":"37","nombre":"CELEBRATION GT","marca":"Panda Express Guatemala","grupo":"Panda Express","pais":"GT","key":"PX","categoria":"Innovacion","estado":"En tiempo","avance":0.9,"plan":0.9,"fecha_brief":"01/07/2026","fecha_launch":"02/11/2026","dias":124,"retrabajos":0,"ficha":0.9},{"id":"38","nombre":"CELEBRATION SV","marca":"Panda Express El Salvador","grupo":"Panda Express","pais":"SV","key":"PX","categoria":"Innovacion","estado":"En tiempo","avance":0.9,"plan":0.9,"fecha_brief":"01/07/2026","fecha_launch":"02/11/2026","dias":124,"retrabajos":0,"ficha":0.9},{"id":"39","nombre":"BAOS GT","marca":"Panda Express Guatemala","grupo":"Panda Express","pais":"GT","key":"PX","categoria":"Innovacion","estado":"En tiempo","avance":0.2,"plan":0.2,"fecha_brief":"01/07/2026","fecha_launch":"10/05/2027","dias":313,"retrabajos":0,"ficha":0.0},{"id":"40","nombre":"BAOS SV","marca":"Panda Express El Salvador","grupo":"Panda Express","pais":"SV","key":"PX","categoria":"Innovacion","estado":"En tiempo","avance":0.2,"plan":0.2,"fecha_brief":"01/07/2026","fecha_launch":"10/05/2027","dias":313,"retrabajos":0,"ficha":0.0},{"id":"41","nombre":"VALENTINES","marca":"Punta del Cielo","grupo":"Punta del Cielo","pais":"MX","key":"PDC","categoria":"Innovacion","estado":"Completado","avance":1.0,"plan":1.0,"fecha_brief":"01/12/2025","fecha_launch":"01/02/2026","dias":62,"retrabajos":0,"ficha":1.0},{"id":"42","nombre":"REFRESHER SUMMER","marca":"Punta del Cielo","grupo":"Punta del Cielo","pais":"MX","key":"PDC","categoria":"Innovacion","estado":"Completado","avance":1.0,"plan":1.0,"fecha_brief":"01/12/2025","fecha_launch":"01/03/2026","dias":90,"retrabajos":0,"ficha":1.0},{"id":"43","nombre":"FRAPPE SELECTION","marca":"Punta del Cielo","grupo":"Punta del Cielo","pais":"MX","key":"PDC","categoria":"Innovacion","estado":"Completado","avance":1.0,"plan":1.0,"fecha_brief":"01/03/2026","fecha_launch":"01/06/2026","dias":92,"retrabajos":0,"ficha":1.0},{"id":"44","nombre":"FIESTAS PATRIAS","marca":"Punta del Cielo","grupo":"Punta del Cielo","pais":"MX","key":"PDC","categoria":"Innovacion","estado":"Completado","avance":1.0,"plan":1.0,"fecha_brief":"01/05/2026","fecha_launch":"01/08/2026","dias":92,"retrabajos":1,"ficha":1.0},{"id":"45","nombre":"NAVIDAD","marca":"Punta del Cielo","grupo":"Punta del Cielo","pais":"MX","key":"PDC","categoria":"Innovacion","estado":"En tiempo","avance":0.7,"plan":0.7,"fecha_brief":"01/08/2026","fecha_launch":"02/11/2026","dias":93,"retrabajos":2,"ficha":0.9},{"id":"25","nombre":"PLATES DELIVERY ALMUERZO Y CENA","marca":"Applebee's","grupo":"Applebee's","pais":"GT","key":"APB","categoria":"Innovacion","estado":"En tiempo","avance":1.0,"plan":1.0,"fecha_brief":"01/07/2026","fecha_launch":"01/10/2026","dias":92,"retrabajos":0,"ficha":1.0},{"id":"26","nombre":"SYNERGY","marca":"Applebee's","grupo":"Applebee's","pais":"GT","key":"APB","categoria":"Innovacion","estado":"En tiempo","avance":0.23,"plan":0.23,"fecha_brief":"15/08/2026","fecha_launch":"01/12/2026","dias":108,"retrabajos":0,"ficha":1.0},{"id":"27","nombre":"CORTE TRIRIP PYREX","marca":"Applebee's","grupo":"Applebee's","pais":"GT","key":"APB","categoria":"Proyecto","estado":"En pausa","avance":0.1,"plan":0.1,"fecha_brief":"15/08/2026","fecha_launch":"02/11/2026","dias":79,"retrabajos":0,"ficha":0.0},{"id":"28","nombre":"PAPAS FRITAS CORE MENU","marca":"Applebee's","grupo":"Applebee's","pais":"GT","key":"APB","categoria":"Proyecto","estado":"En tiempo","avance":0.5,"plan":0.5,"fecha_brief":"15/08/2026","fecha_launch":"01/11/2026","dias":78,"retrabajos":0,"ficha":0.0},{"id":"29","nombre":"SAMPLERS","marca":"Applebee's","grupo":"Applebee's","pais":"GT","key":"APB","categoria":"Innovacion","estado":"En pausa","avance":0.0,"plan":0.0,"fecha_brief":"15/08/2026","fecha_launch":"01/01/2027","dias":139,"retrabajos":0,"ficha":0.0},{"id":"30","nombre":"POSTRE LUNCH","marca":"Applebee's","grupo":"Applebee's","pais":"GT","key":"APB","categoria":"Innovacion","estado":"En pausa","avance":0.0,"plan":0.0,"fecha_brief":"06/09/2026","fecha_launch":"01/11/2026","dias":56,"retrabajos":0,"ficha":0.0},{"id":"18","nombre":"AJUSTE DE RECETA LATTE","marca":"Café Barista Guatemala","grupo":"Café Barista","pais":"GT","key":"CB","categoria":"Proyecto","estado":"Completado","avance":1.0,"plan":1.0,"fecha_brief":"06/09/2026","fecha_launch":"20/09/2026","dias":14,"retrabajos":0,"ficha":1.0},{"id":"19","nombre":"ESPRESSO CLÁSICO BARISTA","marca":"Café Barista Guatemala","grupo":"Café Barista","pais":"GT","key":"CB","categoria":"Proyecto","estado":"Completado","avance":1.0,"plan":1.0,"fecha_brief":"15/07/2026","fecha_launch":"02/09/2026","dias":49,"retrabajos":0,"ficha":1.0},{"id":"21","nombre":"SINERGY","marca":"Café Barista Guatemala","grupo":"Café Barista","pais":"GT","key":"CB","categoria":"Proyecto","estado":"Completado","avance":1.0,"plan":1.0,"fecha_brief":"01/06/2026","fecha_launch":"01/08/2026","dias":61,"retrabajos":2,"ficha":1.0},{"id":"20","nombre":"PRUEBAS PILOTO","marca":"Café Barista Guatemala","grupo":"Café Barista","pais":"GT","key":"CB","categoria":"Proyecto","estado":"En tiempo","avance":0.5,"plan":0.4,"fecha_brief":"10/08/2026","fecha_launch":"10/09/2026","dias":31,"retrabajos":1,"ficha":0.0},{"id":"46","nombre":"DERRETIDO","marca":"Punta del Cielo","grupo":"Punta del Cielo","pais":"MX","key":"PDC","categoria":"Innovacion","estado":"En tiempo","avance":0.2,"plan":0.2,"fecha_brief":"10/08/2026","fecha_launch":"01/01/2027","dias":144,"retrabajos":1,"ficha":0.0},{"id":"47","nombre":"CROISSANT JAMON Y QUESO","marca":"Punta del Cielo","grupo":"Punta del Cielo","pais":"MX","key":"PDC","categoria":"Innovacion","estado":"En pausa","avance":0.0,"plan":0.0,"fecha_brief":"10/08/2026","fecha_launch":"01/01/2027","dias":144,"retrabajos":0,"ficha":1.0},{"id":"48","nombre":"ESTANDARIZACION","marca":"Punta del Cielo","grupo":"Punta del Cielo","pais":"MX","key":"PDC","categoria":"Proyecto","estado":"En pausa","avance":0.0,"plan":0.0,"fecha_brief":"10/08/2026","fecha_launch":"01/11/2026","dias":83,"retrabajos":0,"ficha":0.0}];
+
+/* ══ CONSTANTS ══════════════════════════════════════ */
+const GRUPOS = ['Café Barista',"Applebee's",'Panda Express','Punta del Cielo'];
+const GMETA = {
+  'Café Barista':    { color:'#1a6b3a', light:'#e6f5ec', emoji:'☕', cls:'bn-cb',  gradient:'linear-gradient(135deg,#0d3d20,#1a6b3a)' },
+  "Applebee's":      { color:'#c0390f', light:'#fdecea', emoji:'🍔', cls:'bn-apb', gradient:'linear-gradient(135deg,#7a1a00,#c0390f)' },
+  'Panda Express':   { color:'#1a1a1a', light:'#f0f0f0', emoji:'🐼', cls:'bn-px',  gradient:'linear-gradient(135deg,#000,#333)' },
+  'Punta del Cielo': { color:'#6d28d9', light:'#ede9fe', emoji:'🏔', cls:'bn-pdc', gradient:'linear-gradient(135deg,#3b0764,#6d28d9)' },
+};
+const SMETA = {
+  'Completado':{ cls:'s-comp', icon:'✅', color:'#059669' },
+  'En tiempo': { cls:'s-et',   icon:'🔵', color:'#2563eb' },
+  'Atrasado':  { cls:'s-atr',  icon:'🔴', color:'#dc2626' },
+  'En riesgo': { cls:'s-rsg',  icon:'🟡', color:'#d97706' },
+};
+const PRIO_ORDER = {'Completado':0,'En tiempo':1,'En riesgo':2,'Atrasado':3};
+
+function pctColor(v){
+  if(v===null||v===undefined) return '#9ca3af';
+  return v>=.85?'#059669': v>=.6?'#2563eb': v>=.4?'#d97706': '#dc2626';
+}
+function fmtPct(v){ return v!==null&&v!==undefined ? Math.round(v*100)+'%' : '—'; }
+
+/* ══ STATE ══════════════════════════════════════════ */
+let DATA = null;
+let VIEW = 'all';
+let F_ESTADO = '', F_CAT = '', F_TXT = '';
+let SORT = 'estado'; let SORT_DIR = 1;
+let PRJ = [];
+let CHARTS = {};
+
+/* ══ UPLOAD ══════════════════════════════════════════ */
+const uc = document.getElementById('up-card');
+uc.addEventListener('dragover', e=>{e.preventDefault();uc.classList.add('drag');});
+uc.addEventListener('dragleave', ()=>uc.classList.remove('drag'));
+uc.addEventListener('drop', e=>{
+  e.preventDefault(); uc.classList.remove('drag');
+  const f = [...e.dataTransfer.files].find(f=>/\.xlsx?$/i.test(f.name));
+  if(f) processFile(f);
+});
+document.getElementById('fi').addEventListener('change', e=>{
+  if(e.target.files[0]) processFile(e.target.files[0]);
+});
+
+function processFile(file){
+  const prog = document.getElementById('up-prog');
+  const fill = document.getElementById('up-fill');
+  prog.classList.add('show');
+  fill.style.width = '20%';
+  const r = new FileReader();
+  r.onload = ev => {
+    fill.style.width = '60%';
+    setTimeout(()=>{
+      try {
+        const wb = XLSX.read(ev.target.result,{type:'array',cellDates:false,raw:false});
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        const rows = XLSX.utils.sheet_to_json(ws,{header:1,defval:'',raw:false});
+        DATA = parseRows(rows);
+        fill.style.width = '100%';
+        setTimeout(()=>{ prog.classList.remove('show'); initApp(file.name); }, 300);
+      } catch(err){
+        console.error(err);
+        DATA = EMBEDDED;
+        initApp('Datos de muestra');
+      }
+    }, 50);
+  };
+  r.readAsArrayBuffer(file);
+}
+
+function loadDemo(){ DATA = EMBEDDED; initApp('Últimos datos guardados'); }
+
+function parseRows(rows){
+  const MARCA_MAP = {
+    'Café Barista Guatemala':   {grupo:'Café Barista',   pais:'GT'},
+    'Café Barista El Salvador': {grupo:'Café Barista',   pais:'SV'},
+    "Applebee's":               {grupo:"Applebee's",     pais:'GT'},
+    'Panda Express Guatemala':  {grupo:'Panda Express',  pais:'GT'},
+    'Panda Express El Salvador':{grupo:'Panda Express',  pais:'SV'},
+    'Punta del Cielo':          {grupo:'Punta del Cielo',pais:'MX'},
+  };
+  const parsePct = v => {
+    if(!v&&v!==0) return null;
+    try{ const f=parseFloat(String(v).replace('%','')); return isNaN(f)?null:(f<=1?f:f/100); }catch{return null;}
+  };
+  const parseDate = v => {
+    if(!v) return '';
+    const m=String(v).match(/(\d{4})-(\d{2})-(\d{2})/);
+    return m?`${m[3]}/${m[2]}/${m[1]}`:String(v).slice(0,10);
+  };
+  const normalizeEstado = s => {
+    const l=(s||'').toLowerCase();
+    if(l.includes('complet')) return 'Completado';
+    if(l.includes('tiempo'))  return 'En tiempo';
+    if(l.includes('atraso')||l.includes('atrasa')) return 'Atrasado';
+    if(l.includes('riesgo'))  return 'En riesgo';
+    return s;
+  };
+  return rows.slice(1).filter(r=>r[1]&&r[2]).map(r=>{
+    const meta = MARCA_MAP[String(r[2]).trim()] || {grupo:String(r[2]).trim(),pais:''};
+    return {
+      id: String(r[0]||'').replace('.0',''),
+      nombre: String(r[1]).trim(),
+      marca: String(r[2]).trim(),
+      grupo: meta.grupo, pais: meta.pais,
+      categoria: String(r[3]||''),
+      estado: normalizeEstado(String(r[4]||'')),
+      avance: parsePct(r[5]), plan: parsePct(r[6]),
+      fecha_brief: parseDate(r[7]), fecha_launch: parseDate(r[8]),
+      dias: parseInt(r[9])||0, retrabajos: parseInt(r[10])||0,
+      ficha: parsePct(r[11]),
+    };
+  });
+}
+
+/* ══ APP INIT ════════════════════════════════════════ */
+function initApp(fname){
+  document.getElementById('upload-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  document.getElementById('tb-file').textContent = fname;
+  document.getElementById('tb-total').textContent = DATA.length + ' proyectos';
+  VIEW='all'; F_ESTADO=''; F_CAT=''; F_TXT=''; SORT='estado'; SORT_DIR=1;
+  buildNav(); renderView();
+}
+
+function resetApp(){
+  DATA=null; destroyCharts(); PRJ=[];
+  document.getElementById('upload-screen').style.display='flex';
+  document.getElementById('app').style.display='none';
+  document.getElementById('fi').value='';
+}
+
+/* ══ NAV ═════════════════════════════════════════════ */
+function buildNav(){
+  const tabs = [{key:'all',label:'Consolidado',cnt:DATA.length,cls:'bn-all',emoji:'📊'},
+    ...GRUPOS.map(g=>({key:g,label:g,cnt:DATA.filter(p=>p.grupo===g).length,
+      cls:GMETA[g].cls, emoji:GMETA[g].emoji}))
+  ];
+  window._NAV_KEYS = tabs.map(t=>t.key);
+  document.getElementById('bnav').innerHTML = tabs.map((t,i)=>`
+    <button class="bntab ${t.cls} ${VIEW===t.key?'active':''}"
+      onclick="setViewIdx(${i})">
+      <span>${t.emoji}</span> ${t.label.split(' ').slice(0,2).join(' ')}
+      <span class="cnt">${t.cnt}</span>
+    </button>`).join('');
+}
+
+function setViewIdx(i){
+  const key = window._NAV_KEYS ? window._NAV_KEYS[i] : null;
+  if(key !== undefined && key !== null) setView(key);
+}
+
+function setView(v){
+  VIEW=v; F_ESTADO=''; F_CAT=''; F_TXT='';
+  destroyCharts(); buildNav(); renderView();
+}
+
+/* ══ DATA HELPERS ═══════════════════════════════════ */
+function getByGrupo(g){ return g?DATA.filter(p=>p.grupo===g):DATA; }
+function getCrits(){ return DATA.filter(p=>p.retrabajos>0||p.estado==='Atrasado'||p.estado==='En riesgo'); }
+function filteredData(pdvs){
+  let r = pdvs;
+  if(F_ESTADO) r = r.filter(p=>p.estado===F_ESTADO);
+  if(F_CAT)    r = r.filter(p=>p.categoria===F_CAT);
+  if(F_TXT){
+    const t=F_TXT.toLowerCase();
+    r = r.filter(p=>p.nombre.toLowerCase().includes(t)||p.marca.toLowerCase().includes(t));
+  }
+  return r.sort((a,b)=>{
+    const va = SORT==='avance'?(a.avance??-1): SORT==='nombre'?a.nombre: SORT==='estado'?(PRIO_ORDER[a.estado]??9): SORT==='dias'?a.dias: 0;
+    const vb = SORT==='avance'?(b.avance??-1): SORT==='nombre'?b.nombre: SORT==='estado'?(PRIO_ORDER[b.estado]??9): SORT==='dias'?b.dias: 0;
+    if(va<vb) return -SORT_DIR; if(va>vb) return SORT_DIR; return 0;
+  });
+}
+function setSort(col){ if(SORT===col) SORT_DIR*=-1; else{SORT=col;SORT_DIR=1;} renderView(); }
+
+/* ══ RENDER ══════════════════════════════════════════ */
+function renderView(){
+  const page = document.getElementById('page');
+  PRJ = [];
+  if(VIEW==='all') { page.innerHTML = renderAll(); setTimeout(()=>buildAllCharts(DATA), 40); }
+  else { page.innerHTML = renderMarca(VIEW, getByGrupo(VIEW)); setTimeout(()=>buildMarcaCharts(VIEW, getByGrupo(VIEW)), 40); }
+}
+
+/* ── CONSOLIDATED ────────────────────────────────── */
+function renderAll(){
+  const pdvs = DATA;
+  const filt  = filteredData(pdvs);
+  return `
+    ${renderKPIs(pdvs)}
+    <div class="stitle">🗂 Por marca <span class="stitle-note">clic para explorar</span></div>
+    <div class="marca-grid">${GRUPOS.map(g=>renderMarcaCard(g)).join('')}</div>
+    <div class="g2">
+      <div class="card">
+        <div class="stitle">Estado del pipeline</div>
+        <div class="ch"><canvas id="ch-status"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="stitle">Días promedio de desarrollo</div>
+        <div class="ch"><canvas id="ch-avance"></canvas></div>
+      </div>
+    </div>
+    <div class="g-main">
+      <div>
+        ${renderFBar(pdvs, filt)}
+        <div class="stitle">Todos los proyectos <span class="stitle-note">${filt.length} resultados · clic para detalle</span></div>
+        <div class="tbl-scroll"><div class="tbl-wrap">${renderTable(filt, true)}</div></div>
+      </div>
+      <div>
+        <div class="card" style="margin-bottom:16px">
+          <div class="stitle">⚠ Atención requerida</div>
+          ${renderAtencion(pdvs)}
+        </div>
+        <div class="card">
+          <div class="stitle">Ficha técnica %</div>
+          <div class="ch-sm"><canvas id="ch-ficha"></canvas></div>
+        </div>
+      </div>
+    </div>`;
+}
+
+function renderMarcaCard(g){
+  const d=GMETA[g]; const ps=getByGrupo(g);
+  const comp=ps.filter(p=>p.estado==='Completado').length;
+  const et=ps.filter(p=>p.estado==='En tiempo').length;
+  const atr=ps.filter(p=>p.estado==='Atrasado'||p.estado==='En riesgo').length;
+  const avgs=ps.map(p=>p.avance).filter(v=>v!==null);
+  const avg=avgs.length?avgs.reduce((a,b)=>a+b)/avgs.length:null;
+  const gi=GRUPOS.indexOf(g);
+  return `<div class="marca-card" style="--mc:${d.color}" onclick="setViewIdx(${gi+1})">
+    <div class="mc-head">
+      <div class="mc-emoji">${d.emoji}</div>
+      <div>
+        <div class="mc-name">${g}</div>
+        <div class="mc-n">${ps.length} proyectos · 2026</div>
+      </div>
+    </div>
+    <div class="mc-stats">
+      <div class="mc-stat"><div class="mc-stat-v" style="color:#059669">${comp}</div><div class="mc-stat-l">Completados</div></div>
+      <div class="mc-stat"><div class="mc-stat-v" style="color:#2563eb">${et}</div><div class="mc-stat-l">En tiempo</div></div>
+      <div class="mc-stat"><div class="mc-stat-v" style="color:${atr>0?'#dc2626':'#059669'}">${atr}</div><div class="mc-stat-l">En alerta</div></div>
+    </div>
+    <div class="mc-bar"><div class="mc-bar-fill" style="width:${avg!==null?Math.round(avg*100):0}%;background:${d.color}"></div></div>
+    <div class="mc-avg">${avg!==null?'Avance prom. '+Math.round(avg*100)+'%':'Sin datos de avance'}</div>
+  </div>`;
+}
+
+function buildAllCharts(pdvs){
+  // Donut status
+  const ctx1=document.getElementById('ch-status'); if(!ctx1) return;
+  const sts=['Completado','En tiempo','En riesgo','Atrasado'];
+  const cols=['#059669','#2563eb','#d97706','#dc2626'];
+  CHARTS.status = new Chart(ctx1,{type:'doughnut',
+    data:{labels:sts,datasets:[{data:sts.map(s=>pdvs.filter(p=>p.estado===s).length),
+      backgroundColor:cols.map(c=>c+'d0'),borderColor:cols,borderWidth:2,
+      hoverBorderColor:'#fff',hoverBorderWidth:3}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'65%',
+      plugins:{legend:{position:'right',labels:{boxWidth:12,padding:12,font:{size:12,family:'Inter'}}},
+        tooltip:{callbacks:{label:c=>`${c.label}: ${c.raw} proyectos`}}}}});
+
+  // Bar días promedio por marca
+  const ctx2=document.getElementById('ch-avance');
+  if(ctx2){
+    const diasProm=GRUPOS.map(g=>{
+      const vs=pdvs.filter(p=>p.grupo===g&&p.dias>0).map(p=>p.dias);
+      return vs.length?Math.round(vs.reduce((a,b)=>a+b)/vs.length):0;
+    });
+    CHARTS.avance=new Chart(ctx2,{
+      type:'bar',
+      data:{
+        labels:GRUPOS.map(g=>g.split(' ')[0]),
+        datasets:[{
+          label:'Días promedio',
+          data:diasProm,
+          backgroundColor:GRUPOS.map(g=>GMETA[g].color+'99'),
+          borderColor:GRUPOS.map(g=>GMETA[g].color),
+          borderWidth:2,borderRadius:8,borderSkipped:false
+        }]
+      },
+      options:{
+        responsive:true,maintainAspectRatio:false,indexAxis:'y',
+        plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.raw+' días prom.'}}},
+        scales:{
+          x:{beginAtZero:true,ticks:{callback:v=>v+' d',font:{family:'Inter',size:10}},grid:{color:'rgba(0,0,0,.04)'}},
+          y:{grid:{display:false},ticks:{font:{family:'Inter',size:11,weight:'600'}}}
+        }
+      }
+    });
+  }
+
+  // Radar ficha
+  const ctx3=document.getElementById('ch-ficha'); if(!ctx3) return;
+  const fichas=GRUPOS.map(g=>{
+    const vs=pdvs.filter(p=>p.grupo===g&&p.ficha!==null).map(p=>p.ficha);
+    return vs.length?+(vs.reduce((a,b)=>a+b)/vs.length*100).toFixed(1):0;
+  });
+  CHARTS.ficha = new Chart(ctx3,{type:'radar',
+    data:{labels:GRUPOS.map(g=>g.split(' ')[0]),datasets:[{
+      label:'Ficha técnica %',data:fichas,
+      backgroundColor:'rgba(28,35,65,.08)',borderColor:'#1c2341',
+      borderWidth:2,pointBackgroundColor:GRUPOS.map(g=>GMETA[g].color),pointRadius:5}]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{r:{min:0,max:100,ticks:{stepSize:25,font:{size:10}},
+        grid:{color:'rgba(0,0,0,.06)'},
+        pointLabels:{font:{size:11,weight:'600',family:'Inter'}}}}}});
+}
+
+/* ── BRAND VIEW ──────────────────────────────────── */
+function renderMarca(g, pdvs){
+  const d=GMETA[g]||{color:'#333',emoji:'📦',gradient:'linear-gradient(135deg,#333,#555)'};
+  const filt=filteredData(pdvs);
+  const comp=pdvs.filter(p=>p.estado==='Completado').length;
+  const et=pdvs.filter(p=>p.estado==='En tiempo').length;
+  const avgs=pdvs.map(p=>p.avance).filter(v=>v!==null);
+  const avg=avgs.length?avgs.reduce((a,b)=>a+b)/avgs.length:null;
+
+  // Desglose GT/SV
+  const paises=[...new Set(pdvs.map(p=>p.pais).filter(Boolean))];
+  const paisBadges=paises.map(p=>`<span class="cbadge">${p}</span>`).join('');
+  const innov = pdvs.filter(p=>p.categoria==='Innovacion').length;
+  const proy  = pdvs.filter(p=>p.categoria==='Proyecto').length;
+
+  return `
+    <div class="brand-hero" style="background:${d.gradient}">
+      <div class="bh-left">
+        <div class="bh-emoji">${d.emoji}</div>
+        <div>
+          <div class="bh-title">${g}${paisBadges}</div>
+          <div class="bh-sub">${pdvs.length} proyectos en pipeline · 2026</div>
+        </div>
+      </div>
+      <div class="bh-stats">
+        <div class="bh-stat"><div class="bh-stat-v">${comp}</div><div class="bh-stat-l">Completados</div></div>
+        <div class="bh-stat"><div class="bh-stat-v">${et}</div><div class="bh-stat-l">En tiempo</div></div>
+        <div class="bh-stat"><div class="bh-stat-v">${avg!==null?Math.round(avg*100)+'%':'—'}</div><div class="bh-stat-l">Avance prom.</div></div>
+      </div>
+    </div>
+    ${renderKPIs(pdvs)}
+    <div class="g2">
+      <div class="card">
+        <div class="stitle">Distribución de estado</div>
+        <div class="ch"><canvas id="ch-donut"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="stitle">Días promedio de desarrollo</div>
+        <div class="ch"><canvas id="ch-dias"></canvas></div>
+      </div>
+    </div>
+    <div class="g2" style="margin-bottom:1.5rem">
+      <div class="card" style="padding:18px 20px">
+        <div class="stitle">🚀 Innovación <span class="stitle-note">${innov} proyecto${innov!==1?'s':''}</span></div>
+        <div class="tbl-scroll" style="max-height:260px"><div class="tbl-wrap">${renderTableMini(filteredData(pdvs.filter(p=>p.categoria==='Innovacion')), false)}</div></div>
+      </div>
+      <div class="card" style="padding:18px 20px">
+        <div class="stitle">🔧 Proyectos <span class="stitle-note">${proy} proyecto${proy!==1?'s':''}</span></div>
+        ${proy>0
+          ?`<div class="tbl-scroll" style="max-height:260px"><div class="tbl-wrap">${renderTableMini(filteredData(pdvs.filter(p=>p.categoria==='Proyecto')), false)}</div></div>`
+          :`<div class="empty" style="padding:2rem"><div class="empty-i">✅</div><h3>Sin proyectos especiales</h3></div>`}
+      </div>
+    </div>
+    ${renderFBar(pdvs, filt)}
+    <div class="stitle">Proyectos <span class="stitle-note">${filt.length} · clic para detalle</span></div>
+    <div class="tbl-scroll"><div class="tbl-wrap">${renderTable(filt, false)}</div></div>`;
+}
+
+function buildMarcaCharts(g, pdvs){
+  const d=GMETA[g]||{color:'#333'};
+
+  // Donut de estados
+  const ctx1=document.getElementById('ch-donut');
+  if(ctx1){
+    const sts=['Completado','En tiempo','En riesgo','Atrasado','En pausa'];
+    const cols=['#059669','#2563eb','#d97706','#dc2626','#9ca3af'];
+    CHARTS.donut=new Chart(ctx1,{
+      type:'doughnut',
+      data:{
+        labels:sts,
+        datasets:[{
+          data:sts.map(s=>pdvs.filter(p=>p.estado===s).length),
+          backgroundColor:cols.map(c=>c+'d0'),
+          borderColor:cols,
+          borderWidth:2
+        }]
+      },
+      options:{
+        responsive:true,maintainAspectRatio:false,cutout:'66%',
+        plugins:{
+          legend:{position:'right',labels:{boxWidth:12,padding:10,font:{size:12,family:'Inter'}}},
+          tooltip:{callbacks:{label:c=>`${c.label}: ${c.raw}`}}
+        }
+      }
+    });
+  }
+
+  // Días promedio por categoría y estado
+  const ctx2=document.getElementById('ch-dias');
+  if(ctx2){
+    const cats=[...new Set(pdvs.map(p=>p.categoria).filter(Boolean))];
+    const estados2=['Completado','En tiempo','En pausa'];
+    const colores2=['#059669','#2563eb','#9ca3af'];
+    const datasets2=estados2.map((st,i)=>({
+      label:st,
+      data:cats.map(cat=>{
+        const vs=pdvs.filter(p=>p.categoria===cat&&p.estado===st&&p.dias>0).map(p=>p.dias);
+        return vs.length?Math.round(vs.reduce((a,b)=>a+b)/vs.length):0;
+      }),
+      backgroundColor:colores2[i]+'bb',
+      borderColor:colores2[i],
+      borderWidth:1.5,borderRadius:6,borderSkipped:false
+    }));
+    CHARTS.dias=new Chart(ctx2,{
+      type:'bar',
+      data:{labels:cats,datasets:datasets2},
+      options:{
+        responsive:true,maintainAspectRatio:false,
+        plugins:{
+          legend:{position:'bottom',labels:{boxWidth:12,font:{size:11,family:'Inter'}}},
+          tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${c.raw} días prom.`}}
+        },
+        scales:{
+          x:{grid:{display:false},ticks:{font:{family:'Inter',size:11,weight:'600'}}},
+          y:{
+            beginAtZero:true,
+            ticks:{callback:v=>v+' d',font:{family:'Inter',size:10}},
+            grid:{color:'rgba(0,0,0,.04)'}
+          }
+        }
+      }
+    });
+  }
+}
+
+/* ── KPIs ─────────────────────────────────────────── */
+function renderKPIs(pdvs){
+  const n=pdvs.length;
+  const comp=pdvs.filter(p=>p.estado==='Completado').length;
+  const et=pdvs.filter(p=>p.estado==='En tiempo').length;
+  const avgs=pdvs.filter(p=>p.avance!==null).map(p=>p.avance);
+  const avg=avgs.length?avgs.reduce((a,b)=>a+b)/avgs.length:0;
+  const retrab=pdvs.reduce((s,p)=>s+p.retrabajos,0);
+  return `<div class="kpi-row" style="margin-bottom:2rem">
+    <div class="kpi" style="--kc:#1c2341">
+      <div style="font-size:20px;margin-bottom:4px">📦</div>
+      <div class="kpi-n">${n}</div>
+      <div class="kpi-l">Proyectos en pipeline</div>
+    </div>
+    <div class="kpi" style="--kc:#059669">
+      <div style="font-size:20px;margin-bottom:4px">✅</div>
+      <div class="kpi-n" style="color:#059669">${comp}</div>
+      <div class="kpi-l">Completados · ${n?Math.round(comp/n*100):0}%</div>
+      <div class="kpi-bar"><div class="kpi-bar-fill" style="width:${n?Math.round(comp/n*100):0}%;background:#059669"></div></div>
+    </div>
+    <div class="kpi" style="--kc:#2563eb">
+      <div style="font-size:20px;margin-bottom:4px">🔵</div>
+      <div class="kpi-n" style="color:#2563eb">${et}</div>
+      <div class="kpi-l">En tiempo · ${n?Math.round(et/n*100):0}%</div>
+      <div class="kpi-bar"><div class="kpi-bar-fill" style="width:${n?Math.round(et/n*100):0}%;background:#2563eb"></div></div>
+    </div>
+    <div class="kpi" style="--kc:${pctColor(avg)}">
+      <div style="font-size:20px;margin-bottom:4px">🎯</div>
+      <div class="kpi-n" style="color:${pctColor(avg)}">${Math.round(avg*100)}%</div>
+      <div class="kpi-l">Avance promedio</div>
+      <div class="kpi-bar"><div class="kpi-bar-fill" style="width:${Math.round(avg*100)}%;background:${pctColor(avg)}"></div></div>
+    </div>
+    <div class="kpi" style="--kc:${retrab>0?'#dc2626':'#059669'}">
+      <div style="font-size:20px;margin-bottom:4px">${retrab>0?'⚠️':'✨'}</div>
+      <div class="kpi-n" style="color:${retrab>0?'#dc2626':'#059669'}">${retrab}</div>
+      <div class="kpi-l">${retrab>0?'Retrabajos':'Sin retrabajos'}</div>
+    </div>
+  </div>`;
+}
+
+/* ── FILTER BAR ──────────────────────────────────── */
+function renderFBar(pdvs, filt){
+  const estados=[...new Set(pdvs.map(p=>p.estado))];
+  const cats=[...new Set(pdvs.map(p=>p.categoria).filter(Boolean))];
+  return `<div class="fbar">
+    <select onchange="F_ESTADO=this.value;renderView()" style="min-width:130px">
+      <option value="">Todos los estados</option>
+      ${estados.map(s=>`<option${F_ESTADO===s?' selected':''}>${s}</option>`).join('')}
+    </select>
+    <select onchange="F_CAT=this.value;renderView()" style="min-width:120px">
+      <option value="">Todas las categorías</option>
+      ${cats.map(c=>`<option${F_CAT===c?' selected':''}>${c}</option>`).join('')}
+    </select>
+    <div class="f-search">
+      <input placeholder="Buscar proyecto…" value="${F_TXT}"
+        oninput="F_TXT=this.value;renderView()">
+    </div>
+    <span class="f-cnt">${filt.length} resultados</span>
+    <button class="f-clr" onclick="F_ESTADO='';F_CAT='';F_TXT='';renderView()">✕ Limpiar</button>
+  </div>`;
+}
+
+/* ── TABLE ───────────────────────────────────────── */
+function renderTable(filt, showMarca){
+  if(!filt.length) return `<div class="empty"><div class="empty-i">🔍</div><h3>Sin resultados</h3><p>Ajusta los filtros</p></div>`;
+  const arr=c=>SORT===c?(SORT_DIR===1?'↑':'↓'):'↕';
+  const rows=filt.map(p=>{
+    const idx=PRJ.length; PRJ.push(p);
+    const sm=SMETA[p.estado]||{cls:'s-def',icon:'⚪',color:'#9ca3af'};
+    const col=pctColor(p.avance);
+    return `<tr onclick="openDrawer(${idx})">
+      <td class="td-name">${p.nombre}${p.pais?`<span class="cbadge">${p.pais}</span>`:''}</td>
+      ${showMarca?`<td style="color:${GMETA[p.grupo]?.color||'#333'};font-weight:600">${p.grupo.split(' ')[0]}</td>`:''}
+      <td><span class="sbadge ${sm.cls}">${sm.icon} ${p.estado}</span></td>
+      <td>
+        <div class="av-wrap">
+          <div class="av-track"><div class="av-fill" style="width:${p.avance!==null?Math.round(p.avance*100):0}%;background:${col}"></div></div>
+          <span class="av-pct" style="color:${col}">${fmtPct(p.avance)}</span>
+        </div>
+      </td>
+      <td class="td-center" style="font-weight:600;color:${pctColor(p.plan)}">${fmtPct(p.plan)}</td>
+      <td class="td-center">${p.categoria||'—'}</td>
+      <td class="td-center">${p.dias||'—'}</td>
+      <td class="td-center" style="color:${p.retrabajos>3?'#dc2626':p.retrabajos>0?'#d97706':'#059669'};font-weight:600">${p.retrabajos}</td>
+      <td class="td-center" style="color:${pctColor(p.ficha)};font-weight:600">${fmtPct(p.ficha)}</td>
+    </tr>`;
+  }).join('');
+
+  return `<table class="ptbl">
+    <thead><tr>
+      <th onclick="setSort('nombre')">Proyecto ${arr('nombre')}</th>
+      ${showMarca?'<th>Marca</th>':''}
+      <th onclick="setSort('estado')">Estado ${arr('estado')}</th>
+      <th onclick="setSort('avance')">Avance ${arr('avance')}</th>
+      <th>Plan %</th>
+      <th>Categoría</th>
+      <th onclick="setSort('dias')">Días ${arr('dias')}</th>
+      <th>Retrab.</th>
+      <th>Ficha %</th>
+    </tr></thead>
+    <tbody>${rows}</tbody>
+  </table>`;
+}
+
+/* ── ATENCIÓN ─────────────────────────────────────── */
+function renderAtencion(pdvs){
+  // Alerta solo si retrabajos > 3
+  const items = pdvs.filter(p=>p.retrabajos>3)
+    .sort((a,b)=>b.retrabajos-a.retrabajos);
+  if(!items.length) return `<div class="empty" style="padding:1.5rem"><div class="empty-i">✅</div><h3>Sin alertas críticas</h3><p style="font-size:12px;color:var(--tx3);margin-top:4px">No hay proyectos con más de 3 retrabajos</p></div>`;
+  const list=items.map(p=>{
+    const idx=PRJ.length; PRJ.push(p);
+    const sm=SMETA[p.estado]||{cls:'s-def'};
+    return `<div class="retrab-item" onclick="openDrawer(${idx})">
+      <div class="retrab-dot" style="background:#fee2e2;color:#dc2626;font-size:13px;font-weight:900">${p.retrabajos}</div>
+      <div>
+        <div class="retrab-name">${p.nombre}</div>
+        <div class="retrab-meta">${p.grupo.split(' ')[0]} · ${p.pais||''} · <strong style="color:#dc2626">${p.retrabajos} retrabajos</strong></div>
+      </div>
+      <span class="sbadge ${sm.cls}" style="font-size:10px">${p.estado}</span>
+    </div>`;
+  }).join('');
+  return `<div class="retrab-list">${list}</div>`;
+}
+
+
+/* ── TABLE MINI (compact, for categoria split) ── */
+function renderTableMini(filt, showMarca){
+  if(!filt.length) return `<div class="empty" style="padding:1.5rem"><div class="empty-i">—</div><h3>Sin proyectos</h3></div>`;
+  const rows=filt.map(p=>{
+    const idx=PRJ.length; PRJ.push(p);
+    const sm=SMETA[p.estado]||{cls:'s-def',icon:'⚪'};
+    const col=pctColor(p.avance);
+    return `<tr onclick="openDrawer(${idx})">
+      <td class="td-name" style="font-size:12px">${p.nombre}${p.pais?`<span class="cbadge">${p.pais}</span>`:''}</td>
+      <td><span class="sbadge ${sm.cls}" style="font-size:10px">${sm.icon} ${p.estado}</span></td>
+      <td><div class="av-wrap">
+        <div class="av-track" style="min-width:40px"><div class="av-fill" style="width:${p.avance!==null?Math.round(p.avance*100):0}%;background:${col}"></div></div>
+        <span class="av-pct" style="color:${col};font-size:11px">${fmtPct(p.avance)}</span>
+      </div></td>
+      <td class="td-center" style="font-size:11px;color:${p.retrabajos>3?'#dc2626':p.retrabajos>0?'#d97706':'#9ca3af'};font-weight:600">${p.retrabajos>0?p.retrabajos:'—'}</td>
+    </tr>`;
+  }).join('');
+  return `<table class="ptbl">
+    <thead><tr>
+      <th>Proyecto</th><th>Estado</th><th>Avance</th><th>Retrab.</th>
+    </tr></thead>
+    <tbody>${rows}</tbody>
+  </table>`;
+}
+/* ══ DRAWER ══════════════════════════════════════════ */
+function openDrawer(idx){
+  const p=PRJ[idx]; if(!p) return;
+  const d=GMETA[p.grupo]||{color:'#333',emoji:'📦'};
+  const sm=SMETA[p.estado]||{cls:'s-def',icon:'⚪',color:'#9ca3af'};
+  document.getElementById('d-brand').textContent = `${d.emoji} ${p.marca}`;
+  document.getElementById('d-brand').style.color = d.color;
+  document.getElementById('d-title').textContent = p.nombre;
+  document.getElementById('d-meta').innerHTML = `
+    <span class="sbadge ${sm.cls}">${sm.icon} ${p.estado}</span>
+    ${p.pais?`<span class="cbadge">${p.pais}</span>`:''}
+    <span style="font-size:11px;color:var(--tx3)">${p.categoria||''}</span>`;
+
+  const avPct=p.avance!==null?Math.round(p.avance*100):0;
+  const plPct=p.plan!==null?Math.round(p.plan*100):0;
+  const fiPct=p.ficha!==null?Math.round(p.ficha*100):0;
+
+  document.getElementById('d-kpis').innerHTML = [
+    {v:fmtPct(p.avance), l:'Avance', c:pctColor(p.avance)},
+    {v:fmtPct(p.plan),   l:'Plan',   c:pctColor(p.plan)},
+    {v:fmtPct(p.ficha),  l:'Ficha técnica', c:pctColor(p.ficha)},
+    {v:p.retrabajos,     l:'Retrabajos',    c:p.retrabajos>3?'#dc2626':p.retrabajos>0?'#d97706':'#059669'},
+  ].map(k=>`<div class="dkpi"><div class="dkpi-v" style="color:${k.c}">${k.v}</div><div class="dkpi-l">${k.l}</div></div>`).join('');
+
+  const bar=(v,c)=>`<div class="d-bar"><div class="d-fill" style="width:${Math.round((v||0)*100)}%;background:${c}"></div></div>`;
+  const delta=avPct-plPct;
+  const devOk=delta>=0;
+
+  document.getElementById('d-body').innerHTML=`
+    <div class="d-sec">
+      <div class="d-sec-t">Avance del proyecto</div>
+      <div style="margin-bottom:14px">
+        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px">
+          <span style="font-weight:600">Avance real</span>
+          <span style="font-weight:800;color:${pctColor(p.avance)}">${fmtPct(p.avance)}</span>
+        </div>
+        ${bar(p.avance,pctColor(p.avance))}
+      </div>
+      <div style="margin-bottom:14px">
+        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px">
+          <span style="font-weight:600">Plan</span>
+          <span style="font-weight:800;color:${pctColor(p.plan)}">${fmtPct(p.plan)}</span>
+        </div>
+        ${bar(p.plan,pctColor(p.plan))}
+      </div>
+      <div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px">
+          <span style="font-weight:600">Ficha técnica</span>
+          <span style="font-weight:800;color:${pctColor(p.ficha)}">${fmtPct(p.ficha)}</span>
+        </div>
+        ${bar(p.ficha,pctColor(p.ficha))}
+      </div>
+      ${avPct>0&&plPct>0?`<div class="d-deviation" style="background:${devOk?'#d1fae5':'#fef3c7'};margin-top:14px">
+        <div style="font-size:24px">${devOk?'🟢':'🟡'}</div>
+        <div>
+          <div style="font-size:13px;font-weight:700;color:${devOk?'#059669':'#d97706'}">${devOk?'En línea con el plan':'Ligera desviación'}</div>
+          <div style="font-size:11.5px;color:var(--tx3);margin-top:2px">Δ ${delta>=0?'+':''}${delta} pp respecto al plan</div>
+        </div>
+      </div>`:''}
+    </div>
+    <div class="d-sec">
+      <div class="d-sec-t">Información del proyecto</div>
+      <div class="d-grid">
+        <div class="d-item"><div class="d-l">Marca</div><div class="d-v">${p.marca}</div></div>
+        <div class="d-item"><div class="d-l">Categoría</div><div class="d-v">${p.categoria||'—'}</div></div>
+        <div class="d-item"><div class="d-l">Brief</div><div class="d-v">${p.fecha_brief||'—'}</div></div>
+        <div class="d-item"><div class="d-l">Lanzamiento</div><div class="d-v">${p.fecha_launch||'—'}</div></div>
+        <div class="d-item"><div class="d-l">Días de desarrollo</div><div class="d-v">${p.dias||'—'}</div></div>
+        <div class="d-item"><div class="d-l">Retrabajos</div>
+          <div class="d-v" style="color:${p.retrabajos>3?'#dc2626':p.retrabajos>0?'#d97706':'#059669'}">${p.retrabajos===0?'✅ Ninguno':p.retrabajos>3?'🔴 '+p.retrabajos+' retrabajos (alerta)':'🟡 '+p.retrabajos+' revisiones'}</div></div>
+      </div>
+    </div>`;
+
+  document.getElementById('ovl').classList.add('open');
+  document.getElementById('drw').classList.add('open');
+}
+function closeDrawer(){
+  document.getElementById('ovl').classList.remove('open');
+  document.getElementById('drw').classList.remove('open');
+}
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeDrawer(); });
+
+/* ══ CHARTS UTILS ════════════════════════════════════ */
+function destroyCharts(){ Object.values(CHARTS).forEach(c=>c?.destroy&&c.destroy()); CHARTS={}; }
+</script>
+</body>
+</html>
